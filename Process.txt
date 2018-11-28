@@ -1,0 +1,12 @@
+while running {
+	take pictures on set interval
+	Seperate foreground and background
+	extract foreground as Full object
+	reduce image to Full object size (remove blank space)
+	upload templates to search for on Full object Image (foi)
+	highlight template matches on foi
+	return templates found and percent match
+	flag unfound templates and store image number for in-person check
+}
+
+		
