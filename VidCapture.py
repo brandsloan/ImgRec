@@ -3,15 +3,16 @@ import msvcrt
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
+import sys
 
 
 class VidCap:
 	def __init__(self, waitTime = 0.0, errorTolerance = .95, basePic = None, targetDir = None):
 		self.execDir = os.getcwd()
 		self.address = "http://BR20039543:GaiusCenturion1#@127.0.0.1:8090/0"
-		self.waitTime = waitTime
-		self.errorTolerance = errorTolerance
+		self.waitTime = float(waitTime)
+		print waitTime, errorTolerance
+		self.errorTolerance = float(errorTolerance)
 		self.basePic = basePic
 		self.targetDir = targetDir
 		
@@ -118,13 +119,16 @@ class VidCap:
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
 		return
+if __name__ == "__main__":
+	if(len(sys.argv) < 5):
+		V = VidCap(-1, .95, "", "")
+	else:
+		V = VidCap(sys.argv[1] ,sys.argv[2], sys.argv[3], sys.argv[4])
+	V.image_capture()
 
-V = VidCap(-1, .95, "", "")
-V.image_capture()
+	b = V.extract("BaseImage.png")
+	nb = V.extract("Image0.png")
+	nb1 = V.extract("Image1.png")
+	nb2 = V.extract("Image2.png")
 
-b = V.extract("BaseImage.png")
-nb = V.extract("Image0.png")
-nb1 = V.extract("Image1.png")
-nb2 = V.extract("Image2.png")
-
-V.compare(b, nb, nb1, nb2)
+	V.compare(b, nb, nb1, nb2)
