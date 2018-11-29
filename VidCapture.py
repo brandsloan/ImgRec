@@ -100,7 +100,7 @@ class VidCap:
 		imgC = image
 		img = cv2.cvtColor(imgC, cv2.COLOR_BGR2GRAY)
 		mask = img>tol
-		afterImg = img[np.ix_(mask.any(1),mask.any(0))]
+		afterImg = imgC[np.ix_(mask.any(1),mask.any(0))]
 		return afterImg
 	
 	def extract(self, image):
@@ -123,14 +123,15 @@ class VidCap:
 		plt.imshow(img)
 		plt.colorbar()
 		plt.show()
-		retImg = self.crop_open_image(img, 0)
+		retImg = self.crop_open_image(img)
 		return retImg
 		
 	def compare(self, image, *templates):
 		img = image
-		#img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
-		img_gray = cv2.equalizeHist(img)
-		for temp in (templates):
+		img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
+		img_gray = cv2.equalizeHist(img_gray)
+		for t in (templates):
+			temp = self.read_image(t, 0)
 			w, h = temp.shape[::-1]
 			res = cv2.matchTemplate(img_gray, temp, cv2.TM_CCOEFF_NORMED)
 			res3 = cv2.matchTemplate(img_gray, temp, cv2.TM_CCORR_NORMED)
@@ -139,9 +140,12 @@ class VidCap:
 				
 			for pt in zip(*loc[::-1]):
 				cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (255, 0, 0), 2)
+				cv2.putText(img, t, (pt[0], pt[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1, cv2.LINE_AA)
+				#pass
 			for pt in zip(*loc3[::-1]):
-				cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (0, 0, 255), 1)
-			cv2.imshow("img", temp)
+				#cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (0, 0, 255), 1)
+				pass
+			cv2.imshow(t, temp)
 		cv2.imshow("boxed", img)
 		cv2.imshow("ig", img_gray)
 		cv2.waitKey(0)
@@ -153,11 +157,11 @@ if __name__ == "__main__":
 		V = VidCap()
 	else:
 		V = VidCap(sys.argv[1] ,sys.argv[2], None, sys.argv[3])
-	V.image_capture()
+	#V.image_capture()
 
 	b = V.extract("BaseImage.png")
-	nb = V.extract("Image0.png")
-	nb1 = V.extract("Image1.png")
-	nb2 = V.extract("Image2.png")
-
-	V.compare(b, nb, nb1, nb2)
+	V.compare(b, "Image0.png", "Image1.png", "Image2.png")
+	#nb = V.extract("Image0.png")
+	#nb1 = V.extract("Image1.png")
+	#nb2 = V.extract("Image2.png")
+	#V.compare(b, nb, nb1, nb2)
