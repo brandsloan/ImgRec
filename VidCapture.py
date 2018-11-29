@@ -13,7 +13,12 @@ class VidCap:
 		self.waitTime = float(waitTime)
 		self.errorTolerance = float(errorTolerance)
 		self.basePic = basePic
-		self.targetDir = targetDir
+		if targetDir == None:
+			baseDir = os.path.dirname(os.path.abspath(__file__))
+			self.targetDir = os.path.join(baseDir, "images")
+		else:
+			self.targetDir = targetDir
+		print(self.targetDir)
 		
 	def write_image(self, imgName, img):
 		try:
@@ -23,7 +28,27 @@ class VidCap:
 			print("Error opening target directory")
 		finally:
 			os.chdir(self.execDir)
-		
+	
+	def read_image(self, imgName, channels=-1):
+		retImg = None
+		if self.targetDir == None:
+			if channels == 0:
+				retImg = cv2.imread(imgName, channels)
+			else:
+				retImg = cv2.imread(imgName)
+		else:
+			try:
+				os.chdir(self.targetDir)
+				if channels == 0:
+					retImg = cv2.imread(imgName, channels)
+				else:
+					retImg = cv2.imread(imgName)
+			except:
+				print("Error opening target directory")
+			finally:
+				os.chdir(self.execDir)
+		return retImg
+
 	def image_capture(self):
 		print("EMERGENCY EXIT KEY: q")
 		if self.waitTime <= 0.0:
@@ -46,14 +71,14 @@ class VidCap:
 			print("Updating Base Picture")		
 			if video.isOpened() == True:
 				check, frame = video.read()
-				cv2.imwrite("BaseImage.png", frame)
+				self.write_image("BaseImage.png", frame)
 			else:
 				print("Failed to initiate designated camera")
 		if video.isOpened() == True:
 			while(quit != True):
 				check, frame = video.read()
 				print(i)
-				cv2.imwrite("Image"+str(i)+".png", frame)
+				self.write_image("Image"+str(i)+".png", frame)
 				time.sleep(self.waitTime)
 				if msvcrt.kbhit():
 					if msvcrt.getch() == "q":
@@ -65,7 +90,7 @@ class VidCap:
 		print(str(i) + " images")
 	
 	def crop_image(self, image,tol=0):
-		img = cv2.imread(image, 0)
+		img = self.read_image(image, 0)
 		mask = img>tol
 		afterImg = img[np.ix_(mask.any(1),mask.any(0))]
 		return afterImg
@@ -78,7 +103,7 @@ class VidCap:
 		return afterImg
 	
 	def extract(self, image):
-		img = cv2.imread(image)
+		img = self.read_image(image)
 		#img = cv2.GaussianBlur(img, (5, 5), 0)
 		#img = cv2.bilateralFilter(img,9,75,75)
 		
@@ -92,8 +117,8 @@ class VidCap:
 		mask2 = np.where((mask==2)|(mask==0), 0, 1).astype('uint8')
 		img = img*mask2[:,:,np.newaxis]
 		
-		cv2.imwrite("bgextract.png", img)
-		#self.write_image("bgextract.png", img)
+		#cv2.imwrite("bgextract.png", img)
+		self.write_image("bgextract.png", img)
 		plt.imshow(img)
 		plt.colorbar()
 		plt.show()
