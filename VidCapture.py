@@ -46,8 +46,6 @@ class VidCap:
 				cv2.imwrite("BaseImage.png", frame)
 			else:
 				print("Failed to initiate designated camera")
-			#video.release()
-		#video = cv2.VideoCapture(0)
 		if video.isOpened() == True:
 			while(quit != True):
 				check, frame = video.read()
@@ -62,7 +60,20 @@ class VidCap:
 			print("Failed to initiate designated camera")
 		video.release()
 		print str(i) + " images"
-		
+	
+	def crop_image(self, image,tol=0):
+		img = cv2.imread(image, 0)
+		mask = img>tol
+		afterImg = img[np.ix_(mask.any(1),mask.any(0))]
+		return afterImg
+	
+	def crop_open_image(self, image,tol=0):
+		imgC = image
+		img = cv2.cvtColor(imgC, cv2.COLOR_BGR2GRAY)
+		mask = img>tol
+		afterImg = img[np.ix_(mask.any(1),mask.any(0))]
+		return afterImg
+	
 	def extract(self, image):
 		img = cv2.imread(image)
 		#img = cv2.GaussianBlur(img, (5, 5), 0)
@@ -83,10 +94,10 @@ class VidCap:
 		plt.imshow(img)
 		plt.colorbar()
 		plt.show()
-		return img
+		retImg = self.crop_open_image(img, 0)
+		return retImg
 		
 	def compare(self, image, *templates):
-		#img = cv2.imread(image)
 		img = image
 		#img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
 		img_gray = cv2.equalizeHist(img)
@@ -107,32 +118,13 @@ class VidCap:
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
 		return
-	
-	def crop_image(self, image,tol=0):
-		img = cv2.imread(image, 0)
-		cv2.imshow("before", img)
-		mask = img>tol
-		cv2.imshow("after", img[np.ix_(mask.any(1),mask.any(0))])
-		cv2.waitKey(0)
-		cv2.destroyAllWindows()
-		return img[np.ix_(mask.any(1),mask.any(0))]
-	
-	def crop_open_image(self, image,tol=0):
-		imgC = image
-		img = cv2.cvtColor(imgC, cv2.COLOR_BGR2GRAY)
-		cv2.imshow("before", imgC)
-		mask = img>tol
-		afterImg = img[np.ix_(mask.any(1),mask.any(0))]
-		cv2.imshow("after", afterImg)
-		cv2.waitKey(0)
-		cv2.destroyAllWindows()
-		return afterImg
 
 V = VidCap(-1, .95, "", "")
 V.image_capture()
+
 b = V.extract("BaseImage.png")
-nb = V.crop_image("Image0.png", 0)
-nb1 = V.crop_image("Image1.png", 0)
-nb2 = V.crop_image("Image2.png", 0)
-b = V.crop_open_image(b, 0)
+nb = V.extract("Image0.png")
+nb1 = V.extract("Image1.png")
+nb2 = V.extract("Image2.png")
+
 V.compare(b, nb, nb1, nb2)
