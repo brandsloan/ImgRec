@@ -11,7 +11,6 @@ class VidCap:
 		self.execDir = os.getcwd()
 		self.address = "http://BR20039543:GaiusCenturion1#@127.0.0.1:8090/0"
 		self.waitTime = float(waitTime)
-		print waitTime, errorTolerance
 		self.errorTolerance = float(errorTolerance)
 		self.basePic = basePic
 		self.targetDir = targetDir
@@ -27,7 +26,7 @@ class VidCap:
 		
 	def image_capture(self):
 		print("EMERGENCY EXIT KEY: q")
-		if self.waitTime <= 1.0:
+		if self.waitTime <= 0.0:
 			try:
 				self.waitTime = raw_input("Enter time interval in number of seconds: ")
 				self.waitTime = float(self.waitTime)
@@ -35,8 +34,11 @@ class VidCap:
 					raise Excep
 			except ValueError, Excep:
 				self.waitTime = 3
-				print "Invalid input, using base wait time of %d seconds" % self.waitTime
-
+				print("Input non numeric, using base wait time of %d seconds" % self.waitTime)
+			except Excep:
+				self.waitTime = 3
+				print("Input must be positive, using base wait time of %d seconds" % self.waitTime)
+				
 		quit = False
 		i = 0
 		video = cv2.VideoCapture(0)
@@ -60,7 +62,7 @@ class VidCap:
 		else:
 			print("Failed to initiate designated camera")
 		video.release()
-		print str(i) + " images"
+		print(str(i) + " images")
 	
 	def crop_image(self, image,tol=0):
 		img = cv2.imread(image, 0)
@@ -119,9 +121,10 @@ class VidCap:
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
 		return
+		
 if __name__ == "__main__":
 	if(len(sys.argv) < 5):
-		V = VidCap(-1, .95, "", "")
+		V = VidCap()
 	else:
 		V = VidCap(sys.argv[1] ,sys.argv[2], sys.argv[3], sys.argv[4])
 	V.image_capture()
