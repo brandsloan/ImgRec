@@ -4,15 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+
+
 class VidCap:
-	def VC(self, waitTime = 0.0, errorTolerance = .95 ,BasePic = "", targetDir = ""):
+	def __init__(self, waitTime = 0.0, errorTolerance = .95, basePic = None, targetDir = None):
 		self.execDir = os.getcwd()
-		
+		self.address = "http://BR20039543:GaiusCenturion1#@127.0.0.1:8090/0"
 		self.waitTime = waitTime
 		self.errorTolerance = errorTolerance
-		self.BasePic = BasePic
+		self.basePic = basePic
 		self.targetDir = targetDir
-	
+		
 	def write_image(self, imgName, img):
 		try:
 			os.chdir(self.targetDir)
@@ -23,6 +25,7 @@ class VidCap:
 			os.chdir(self.execDir)
 		
 	def image_capture(self):
+		print("EMERGENCY EXIT KEY: q")
 		if self.waitTime <= 1.0:
 			try:
 				self.waitTime = raw_input("Enter time interval in number of seconds: ")
@@ -35,36 +38,35 @@ class VidCap:
 
 		quit = False
 		i = 0
-		if self.BasePic == "":
-			video = cv2.VideoCapture(0)
-			check, frame = video.read()
-			cv2.imwrite("BaseImage.png", frame)
-			video.release()
-
-		while(quit != True):
-			video = cv2.VideoCapture(0)
-			check, frame = video.read()
-
-			cv2.imwrite("Image"+str(i)+".png", frame)
-			time.sleep(self.waitTime)
-			if msvcrt.kbhit():
-				if msvcrt.getch() == "q":
-					quit = True
-			i += 1
-				
+		video = cv2.VideoCapture(0)
+		if not self.basePic:
+			print("Updating Base Picture")		
+			if video.isOpened() == True:
+				check, frame = video.read()
+				cv2.imwrite("BaseImage.png", frame)
+			else:
+				print("Failed to initiate designated camera")
+			#video.release()
+		#video = cv2.VideoCapture(0)
+		if video.isOpened() == True:
+			while(quit != True):
+				check, frame = video.read()
+				print(i)
+				cv2.imwrite("Image"+str(i)+".png", frame)
+				time.sleep(self.waitTime)
+				if msvcrt.kbhit():
+					if msvcrt.getch() == "q":
+						quit = True
+				i += 1
+		else:
+			print("Failed to initiate designated camera")
 		video.release()
 		print str(i) + " images"
-	
-	def __init__(self):
-		self.VC(-1, .775, "a", "b")
 		
-	def extract(self, template, image):
+	def extract(self, image):
 		img = cv2.imread(image)
-		tmp = cv2.imread(template,0)
 		#img = cv2.GaussianBlur(img, (5, 5), 0)
-		#tmp = cv2.GaussianBlur(tmp, (5, 5), 0)
 		#img = cv2.bilateralFilter(img,9,75,75)
-		#tmp = cv2.bilateralFilter(tmp,9,75,75)
 		
 		w, h = img.shape[:-1]
 		mask = np.zeros(img.shape[:2], np.uint8)
@@ -81,20 +83,14 @@ class VidCap:
 		plt.imshow(img)
 		plt.colorbar()
 		plt.show()
-		#cv2.imshow("TEMP", tmp)
-		return tmp, img
+		return img
 		
 	def compare(self, image, *templates):
 		#img = cv2.imread(image)
 		img = image
-		img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
-		#img_gray3 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-		img_gray = cv2.equalizeHist(img_gray)
+		#img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
+		img_gray = cv2.equalizeHist(img)
 		for temp in (templates):
-			#temp = templates[i]
-			#temp_gray = cv2.cvtColor(temp, cv2.COLOR_BGR2GRAY)	
-			#temp_gray = cv2.equalizeHist(temp_gray)
-			#temp = cv2.imread(template)
 			w, h = temp.shape[::-1]
 			res = cv2.matchTemplate(img_gray, temp, cv2.TM_CCOEFF_NORMED)
 			res3 = cv2.matchTemplate(img_gray, temp, cv2.TM_CCORR_NORMED)
@@ -126,16 +122,17 @@ class VidCap:
 		img = cv2.cvtColor(imgC, cv2.COLOR_BGR2GRAY)
 		cv2.imshow("before", imgC)
 		mask = img>tol
-		cv2.imshow("after", img[np.ix_(mask.any(1),mask.any(0))])
+		afterImg = img[np.ix_(mask.any(1),mask.any(0))]
+		cv2.imshow("after", afterImg)
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
-		return imgC[np.ix_(mask.any(1),mask.any(0))]
+		return afterImg
 
-V = VidCap()
-#V.image_capture()
-b, i = V.extract("BaseImage.png", "TestImage.png")
-nb = V.crop_image("bi.png", 0)
-nb1 = V.crop_image("bi1.png", 0)
-nb2 = V.crop_image("bi2.png", 0)
-i = V.crop_open_image(i, 0)
-V.compare(i, nb, nb1, nb2)#"BaseImage.png")
+V = VidCap(-1, .95, "", "")
+V.image_capture()
+b = V.extract("BaseImage.png")
+nb = V.crop_image("Image0.png", 0)
+nb1 = V.crop_image("Image1.png", 0)
+nb2 = V.crop_image("Image2.png", 0)
+b = V.crop_open_image(b, 0)
+V.compare(b, nb, nb1, nb2)
