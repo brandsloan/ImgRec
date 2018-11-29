@@ -18,7 +18,8 @@ class VidCap:
 			self.targetDir = os.path.join(baseDir, "images")
 		else:
 			self.targetDir = targetDir
-		print(self.targetDir)
+		if not os.path.isdir(self.targetDir):
+			os.mkdir(self.targetDir, 0755)
 		
 	def write_image(self, imgName, img):
 		try:
@@ -148,10 +149,10 @@ class VidCap:
 		return
 		
 if __name__ == "__main__":
-	if(len(sys.argv) < 5):
+	if(len(sys.argv) < 4):
 		V = VidCap()
 	else:
-		V = VidCap(sys.argv[1] ,sys.argv[2], sys.argv[3], sys.argv[4])
+		V = VidCap(sys.argv[1] ,sys.argv[2], None, sys.argv[3])
 	V.image_capture()
 
 	b = V.extract("BaseImage.png")
