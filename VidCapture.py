@@ -7,12 +7,11 @@ import sys
 
 
 class VidCap:
-	def __init__(self, waitTime = 0.0, errorTolerance = .95, basePic = None, targetDir = None):
+	def __init__(self, waitTime = 0.0, errorTolerance = .95, targetDir = None):
 		self.execDir = os.getcwd()
 		self.address = "http://BR20039543:GaiusCenturion1#@127.0.0.1:8090/0"
 		self.waitTime = float(waitTime)
 		self.errorTolerance = float(errorTolerance)
-		self.basePic = basePic
 		if targetDir == None:
 			baseDir = os.path.dirname(os.path.abspath(__file__))
 			self.targetDir = os.path.join(baseDir, "images")
@@ -30,16 +29,18 @@ class VidCap:
 		finally:
 			os.chdir(self.execDir)
 	
-	def read_image(self, imgName, channels=-1):
+	def read_image(self, imgName, channels=-1, readDir = None):
+		if readDir == None:
+			readDir = self.targetDir
 		retImg = None
-		if self.targetDir == None:
+		if os.getcwd() == readDir:
 			if channels == 0:
 				retImg = cv2.imread(imgName, channels)
 			else:
 				retImg = cv2.imread(imgName)
 		else:
 			try:
-				os.chdir(self.targetDir)
+				os.chdir(readDir)
 				if channels == 0:
 					retImg = cv2.imread(imgName, channels)
 				else:
@@ -67,14 +68,8 @@ class VidCap:
 				
 		quit = False
 		i = 0
-		video = cv2.VideoCapture(0)
-		if not self.basePic:
-			print("Updating Base Picture")		
-			if video.isOpened() == True:
-				check, frame = video.read()
-				self.write_image("BaseImage.png", frame)
-			else:
-				print("Failed to initiate designated camera")
+		video = cv2.VideoCapture(1)
+		
 		if video.isOpened() == True:
 			while(quit != True):
 				check, frame = video.read()
@@ -126,12 +121,12 @@ class VidCap:
 		retImg = self.crop_open_image(img)
 		return retImg
 		
-	def compare(self, image, *templates):
+	def compare(self, image, tempDir, *templates):
 		img = image
 		img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
 		img_gray = cv2.equalizeHist(img_gray)
 		for t in (templates):
-			temp = self.read_image(t, 0)
+			temp = self.read_image(t, 0, tempDir)
 			w, h = temp.shape[::-1]
 			res = cv2.matchTemplate(img_gray, temp, cv2.TM_CCOEFF_NORMED)
 			res3 = cv2.matchTemplate(img_gray, temp, cv2.TM_CCORR_NORMED)
@@ -152,16 +147,41 @@ class VidCap:
 		cv2.destroyAllWindows()
 		return
 		
+	def templateCompare(self, image, tempDir):
+		img = image
+		img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
+		img_gray = cv2.equalizeHist(img_gray)
+		for root, dirs, files in os.walk(tempDir):
+			for t in files:
+				if t.endswith("png") or t.endswith("jpg") or t.endswith("jpeg"):
+					path = os.path.join(root, t)
+					temp = self.read_image(t, 0)
+					w, h = temp.shape[::-1]
+					res = cv2.matchTemplate(img_gray, temp, cv2.TM_CCOEFF_NORMED)
+					res3 = cv2.matchTemplate(img_gray, temp, cv2.TM_CCORR_NORMED)
+					loc = np.where(res >= self.errorTolerance)
+					loc3 = np.where(res3 >= self.errorTolerance)
+						
+					for pt in zip(*loc[::-1]):
+						cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (255, 0, 0), 2)
+						cv2.putText(img, t, (pt[0], pt[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1, cv2.LINE_AA)
+						#pass
+					for pt in zip(*loc3[::-1]):
+						#cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (0, 0, 255), 1)
+						pass
+					cv2.imshow(t, temp)
+		cv2.imshow("boxed", img)
+		cv2.imshow("ig", img_gray)
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()
+		return
+		
 if __name__ == "__main__":
 	if(len(sys.argv) < 4):
 		V = VidCap()
 	else:
-		V = VidCap(sys.argv[1] ,sys.argv[2], None, sys.argv[3])
-	#V.image_capture()
+		V = VidCap(sys.argv[1] ,sys.argv[2], sys.argv[3])
+	V.image_capture()
 
-	b = V.extract("BaseImage.png")
-	V.compare(b, "Image0.png", "Image1.png", "Image2.png")
-	#nb = V.extract("Image0.png")
-	#nb1 = V.extract("Image1.png")
-	#nb2 = V.extract("Image2.png")
-	#V.compare(b, nb, nb1, nb2)
+	img = V.extract("Image0.png")
+	V.compare(img, "C:\\Users\BR20039543\Documents\ImgRec\HELLO","T0.png", "T1.png", "T2.png")

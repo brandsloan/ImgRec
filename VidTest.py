@@ -12,7 +12,7 @@ with open("labels.pickle", 'rb') as f:
 	labels = {v:k for k,v in base_labels.items()}
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 color = (255, 0, 0)
 
 while(True):
@@ -24,10 +24,8 @@ while(True):
 		roi_color = frame[y:y+h, x:x+w]
 		
 		id_, conf = recognizer.predict(roi_gray)
-		if conf >= 45:
-			print id_
-			print labels[id_]
-			cv2.putText(frame, labels[id_], (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+		if conf <= 100 and conf >= 0:
+			cv2.putText(frame, labels[id_]+ ", " + str(conf), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
 		cv2.imwrite('roi.png', roi_gray)
 		cv2.rectangle(frame, (x,y), (x+w, y+h), color, 2)
 		
