@@ -113,18 +113,21 @@ class VidCap:
                 
                 #cv2.imwrite("bgextract.png", img)
                 self.write_image("bgextract.png", img)
-                plt.imshow(img)
-                plt.colorbar()
-                plt.show()
+                #plt.imshow(img)
+                #plt.colorbar()
+                #plt.show()
                 retImg = self.crop_open_image(img)
                 return retImg
                 
         def compare(self, image, tempDir, *templates):
+                found = 0
                 img = image
-                print(tempDir)
+                #print(tempDir)
                 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)                
                 img_gray = cv2.equalizeHist(img_gray)
                 for t in (templates):
+                        #print(tempDir)
+                        #print(t)
                         temp = self.read_image(t, 0, tempDir)
                         w, h = temp.shape[::-1]
                         res = cv2.matchTemplate(img_gray, temp, cv2.TM_CCOEFF_NORMED)
@@ -135,13 +138,19 @@ class VidCap:
                         for pt in zip(*loc[::-1]):
                                 cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (255, 0, 0), 2)
                                 cv2.putText(img, t, (pt[0], pt[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1, cv2.LINE_AA)
+                                found = 1
                                 #pass
                         for pt in zip(*loc3[::-1]):
                                 #cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (0, 0, 255), 1)
                                 pass
-                        cv2.imshow(t, temp)
-                cv2.imshow("boxed", img)
-                cv2.imshow("ig", img_gray)
+                        if found == 1:
+                                print(t + " was found")
+                        else:
+                                print(t + " was not found")
+                        found = 0
+                        #cv2.imshow(t, temp)
+                #cv2.imshow("boxed", img)
+                #cv2.imshow("ig", img_gray)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
                 return
@@ -168,9 +177,9 @@ class VidCap:
                                         for pt in zip(*loc3[::-1]):
                                                 #cv2.rectangle(img, pt, (pt[0]+w, pt[1]+h), (0, 0, 255), 1)
                                                 pass
-                                        cv2.imshow(t, temp)
-                cv2.imshow("boxed", img)
-                cv2.imshow("ig", img_gray)
+                                        #cv2.imshow(t, temp)
+                #cv2.imshow("boxed", img)
+                #cv2.imshow("ig", img_gray)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
                 return
@@ -180,7 +189,7 @@ if __name__ == "__main__":
                 V = VidCap()
         else:
                 V = VidCap(sys.argv[1] ,sys.argv[2], sys.argv[3])
-        V.image_capture()
+        #V.image_capture()
 
         img = V.extract("Image0.png")
-        V.compare(img,"home/bsloan/WiproImageProject/ImgRec/HELLO" ,"T0.png", "T1.png", "T2.png")
+        V.compare(img,"/home/bsloan/basedir/ImgRec/HELLO" ,"T0.png", "T1.png", "T2.png")
