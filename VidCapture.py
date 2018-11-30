@@ -150,9 +150,10 @@ class VidCap:
                         found = 0
                         #cv2.imshow(t, temp)
                 #cv2.imshow("boxed", img)
+                self.write_image("Final.png", img)
                 #cv2.imshow("ig", img_gray)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
                 return
                 
         def templateCompare(self, image, tempDir):
@@ -180,8 +181,9 @@ class VidCap:
                                         #cv2.imshow(t, temp)
                 #cv2.imshow("boxed", img)
                 #cv2.imshow("ig", img_gray)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
+                self.write_image("Final.png", img)
                 return
                 
 if __name__ == "__main__":
