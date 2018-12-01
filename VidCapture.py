@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-
+import curses
+stdscr = curses.initscr()
 
 class VidCap:
         def __init__(self, waitTime = 0.0, errorTolerance = .95, targetDir = None):
@@ -51,6 +52,7 @@ class VidCap:
                 return retImg
 
         def image_capture(self):
+               # key = stdscr.getch()
                 print("EMERGENCY EXIT KEY: q")
                 if self.waitTime <= 0.0:
                         try:
@@ -67,15 +69,17 @@ class VidCap:
                                 
                 quit = False
                 i = 0
-                video = cv2.VideoCapture(0)
+                video = cv2.VideoCapture(1)
                 
                 if video.isOpened() == True:
                         while(quit != True):
                                 check, frame = video.read()
                                 print(i)
+                                stdscr.clear()
                                 self.write_image("Image"+str(i)+".png", frame)
                                 time.sleep(self.waitTime)
-                                if cv2.waitKey(1) == ord('q'):
+                                key = stdscr.getch()
+                                if key == ord('q'):
                                     quit = True
                                 i += 1
                 else:
@@ -185,13 +189,32 @@ class VidCap:
                 #cv2.destroyAllWindows()
                 self.write_image("Final.png", img)
                 return
-                
-if __name__ == "__main__":
+
+def main():
+        curses.noecho()
+        curses.cbreak()
+        stdscr.keypad(True)
+        stdscr.nodelay(True)
+
+        stdscr.clear()
+
         if(len(sys.argv) < 4):
                 V = VidCap()
         else:
                 V = VidCap(sys.argv[1] ,sys.argv[2], sys.argv[3])
-        #V.image_capture()
+        V.image_capture()
 
         img = V.extract("Image0.png")
         V.compare(img,"/home/bsloan/basedir/ImgRec/HELLO" ,"T0.png", "T1.png", "T2.png")
+	
+        curses.nocbreak()
+        stdscr.keypad(False)
+        curses.echo()
+        curses.endwin()
+
+
+
+       
+                
+if __name__ == "__main__":
+        main()
